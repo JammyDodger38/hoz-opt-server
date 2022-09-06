@@ -179,7 +179,6 @@ class ExcelController {
             for (let nameType of typeList) {
                 let name = nameType
 
-
                 const candidateType = await Type.findOne({
                     where: {
                         name
