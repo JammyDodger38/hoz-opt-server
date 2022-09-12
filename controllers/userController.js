@@ -86,6 +86,15 @@ class UserController {
         return res.json(users)
     }
 
+    async editRole(req, res, next) {
+        const user = await User.update(
+            {role: req.user.role},
+            {where: req.user.id}
+        )
+        const users = await User.findAndCountAll()
+        return res.json(users)
+    }
+
 }
 
 module.exports = new UserController()
