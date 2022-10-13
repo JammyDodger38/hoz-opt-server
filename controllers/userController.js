@@ -87,9 +87,19 @@ class UserController {
     }
 
     async editRole(req, res, next) {
+        const {
+            id,
+            role
+        } = req.body
         const user = await User.update(
-            {role: req.user.role},
-            {where: req.user.id}
+            {
+                role: role,
+            },
+            {
+                where: {
+                    id: id
+                }
+            }
         )
         const users = await User.findAndCountAll()
         return res.json(users)
