@@ -5,11 +5,13 @@ const userRouter = require('./userRouter')
 const typeRouter = require('./typeRouter')
 const subTypeRouter = require('./subTypeRouter')
 const excelRouter = require('./excelRouter')
+const basketRouter = require('./basketRouter')
 
 router.use('/user', userRouter)
 router.use('/type', typeRouter)
 router.use('/subType', subTypeRouter)
 router.use('/product', productRouter)
 router.use('/excel', excelRouter)
+router.use('/basket', basketRouter)
 
 module.exports = router

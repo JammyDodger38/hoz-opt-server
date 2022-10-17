@@ -2,7 +2,8 @@ const uuid = require('uuid')
 const path = require('path')
 const {
     Product,
-    ProductInfo
+    ProductInfo,
+    BasketProduct
 } = require('../models/models')
 const ApiError = require('../error/ApiError')
 const {
