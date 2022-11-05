@@ -3,23 +3,46 @@ const {
     Product
 } = require('../models/models')
 
+const findProductBasket = async (productId) => {
+    const any = await Product.findOne({
+        where: {
+            id: productId
+        }
+    })
+    return any
+}
+
 class BasketController {
     async create(req, res) {
         const {
             basketId,
-            productId
-        } = req.query
+            productId,
+            count,
+            cost
+        } = req.body
 
         const addBasket = await BasketProduct.create({
             basketId,
-            productId
+            productId,
+            count,
+            cost
         })
         const basket = await BasketProduct.findAll({
             where: {
                 basketId: basketId
             }
         },)
-        return basket
+
+        const allBasketProduct = []
+        const basketIdRow = []
+
+        for (let value of basket) {
+            const prod = await findProductBasket(value.productId)
+            allBasketProduct.push(prod)
+            basketIdRow.push({id: value.id, count: value.count, cost: value.cost})
+        }
+
+        return res.json([allBasketProduct, basketIdRow])
     }
 
     async getAll(req, res) {
@@ -32,7 +55,31 @@ class BasketController {
                 basketId: basketId
             }
         },)
-        return res.json(basket)
+
+        const allBasketProduct = []
+        const basketIdRow = []
+
+        for (let value of basket) {
+            const prod = await findProductBasket(value.productId)
+            allBasketProduct.push(prod)
+            basketIdRow.push({id: value.id, count: value.count, cost: value.cost})
+        }
+
+        return res.json([allBasketProduct, basketIdRow])
+    }
+
+    async deleteOne(req, res) {
+        const {
+            id
+        } = req.query
+
+        const deleteProd = await BasketProduct.destroy({
+            where: {
+                id
+            }
+        })
+
+        return res.json(deleteProd)
     }
 }
 

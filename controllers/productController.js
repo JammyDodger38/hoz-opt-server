@@ -9,6 +9,7 @@ const ApiError = require('../error/ApiError')
 const {
     unlink
 } = require('fs')
+const { Op } = require('sequelize')
 
 class ProductController {
     async create(req, res, next) {
@@ -67,7 +68,8 @@ class ProductController {
             typeId,
             subTypeId,
             limit,
-            page
+            page,
+            filter
         } = req.query
         page = page || 1
         limit = limit || 9
@@ -76,6 +78,19 @@ class ProductController {
         let products;
         if (!typeId && !subTypeId) {
             products = await Product.findAndCountAll({
+                where: {
+                    [Op.or]: [
+                    {
+                        name: {
+                        [Op.substring]: filter
+                    }},
+                    {
+                        article: {
+                            [Op.substring]: filter
+                        },
+                    }
+                ]
+                },
                 limit,
                 offset
             })
@@ -83,7 +98,10 @@ class ProductController {
         if (typeId && !subTypeId) {
             products = await Product.findAndCountAll({
                 where: {
-                    typeId
+                    typeId,
+                    name: {
+                        [Op.substring]: filter
+                    }
                 },
                 limit,
                 offset
@@ -92,7 +110,10 @@ class ProductController {
         if (!typeId && subTypeId) {
             products = await Product.findAndCountAll({
                 where: {
-                    subTypeId
+                    subTypeId,
+                    name: {
+                        [Op.substring]: filter
+                    }
                 },
                 limit,
                 offset
@@ -102,7 +123,10 @@ class ProductController {
             products = await Product.findAndCountAll({
                 where: {
                     typeId,
-                    subTypeId
+                    subTypeId,
+                    name: {
+                        [Op.substring]: filter
+                    }
                 },
                 limit,
                 offset
