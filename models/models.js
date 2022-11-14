@@ -16,10 +16,25 @@ const User = sequelize.define('user', {
     password: {
         type: DataTypes.STRING
     },
+    name: {
+        type: DataTypes.STRING,
+        defaultValue: "Гость"
+    },
+    face: {
+        type: DataTypes.STRING,
+    },
+    inn: {
+        type: DataTypes.INTEGER,
+    },
     role: {
         type: DataTypes.STRING,
         defaultValue: "USER"
     },
+    opt: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+
 })
 
 const Basket = sequelize.define('basket', {

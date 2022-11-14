@@ -2,6 +2,7 @@ const {
     BasketProduct,
     Product
 } = require('../models/models')
+const { Op } = require('sequelize')
 
 const findProductBasket = async (productId) => {
     const any = await Product.findOne({
@@ -21,12 +22,48 @@ class BasketController {
             cost
         } = req.body
 
-        const addBasket = await BasketProduct.create({
-            basketId,
-            productId,
-            count,
-            cost
+        const goodsCheck = await BasketProduct.findOne({
+            where: {
+                [Op.and]: [
+                    {
+                        basketId
+                    },
+                    {
+                        productId
+                    }
+                ]
+            }
         })
+
+        if (!goodsCheck) {
+            const addBasket = await BasketProduct.create({
+                basketId,
+                productId,
+                count,
+                cost
+            })
+        } else {
+            const changeQuantity = await BasketProduct.update(
+                {
+                    count: (goodsCheck.count+1),
+                    cost: Number(cost*(goodsCheck.count+1)).toFixed(2)
+                },
+                {
+                    where: {
+                        [Op.and]: [
+                            {
+                                basketId
+                            },
+                            {
+                                productId
+                            }
+                        ]
+                    }
+                }
+            )
+        }
+
+        
         const basket = await BasketProduct.findAll({
             where: {
                 basketId: basketId

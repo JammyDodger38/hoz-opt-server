@@ -14,7 +14,9 @@ const createMessage = async (cart) => {
   let message = ""
   for (let item of cart) {
     if (item.email) {
-      message += "Email покупателя: " + item.email + "<br>" + "<strong>Список товаров:</strong> <br>"
+      message += "Email покупателя: " + item.email + "<br>"
+    } else if (item.contact) {
+      message += "Телефон покупателя: " + item.contact + "<br>" + "<strong>Список товаров:</strong> <br>"
     } else {
       message += "Артикул - " + item.article + ",<br>" + "Наименование: " + item.name + ",<br>" + "Количество: " + item.count + ",<br>" + "Стоимость: " + item.cost + "<br><hr>"
     }

@@ -99,9 +99,17 @@ class ProductController {
             products = await Product.findAndCountAll({
                 where: {
                     typeId,
-                    name: {
-                        [Op.substring]: filter
-                    }
+                    [Op.or]: [
+                        {
+                            name: {
+                            [Op.substring]: filter
+                        }},
+                        {
+                            article: {
+                                [Op.substring]: filter
+                            },
+                        }
+                    ]
                 },
                 limit,
                 offset
@@ -111,9 +119,17 @@ class ProductController {
             products = await Product.findAndCountAll({
                 where: {
                     subTypeId,
-                    name: {
-                        [Op.substring]: filter
-                    }
+                    [Op.or]: [
+                        {
+                            name: {
+                            [Op.substring]: filter
+                        }},
+                        {
+                            article: {
+                                [Op.substring]: filter
+                            },
+                        }
+                    ]
                 },
                 limit,
                 offset
@@ -124,9 +140,17 @@ class ProductController {
                 where: {
                     typeId,
                     subTypeId,
-                    name: {
-                        [Op.substring]: filter
-                    }
+                    [Op.or]: [
+                        {
+                            name: {
+                            [Op.substring]: filter
+                        }},
+                        {
+                            article: {
+                                [Op.substring]: filter
+                            },
+                        }
+                    ]
                 },
                 limit,
                 offset
