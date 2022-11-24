@@ -10,7 +10,7 @@ let transporter = nodemailer.createTransport({
   },
 })
 
-const createMessage = async (cart) => {
+const createMessageCart = async (cart) => {
   let message = ""
   for (let item of cart) {
     if (item.email) {
@@ -24,8 +24,19 @@ const createMessage = async (cart) => {
   return String(message)
 }
 
+const createMessageContact = async (contacts) => {
+  let message = ""
+  message += "Имя покупателя: " + contacts.name + "<br>"
+  message += "Телефон покупателя: " + contacts.phone + "<br>"
+  message += "Email покупателя: " + contacts.email + "<br>"
+  if(contacts.comment) {
+    message += "Комментарий покупателя: " + contacts.comment + "<br>"
+  }
+  return String(message)
+}
+
 class EmailController {
-  async send(req, res) {
+  async sendCart(req, res) {
       const cart = req.body
 
       await transporter.sendMail({
@@ -33,7 +44,21 @@ class EmailController {
         to: 'blad20002000@mail.ru, blad20002000@mail.ru',
         subject: 'Заказ клиента',
         html:
-        await createMessage(cart)
+        await createMessageCart(cart)
+      })
+      
+      return res.json("Сообщение отправлено!")
+  }
+
+  async sendContacts(req, res) {
+      const contacts = req.body
+
+      await transporter.sendMail({
+        from: '"ХозОптСклад" <blad20002000@mail.ru>',
+        to: 'blad20002000@mail.ru, blad20002000@mail.ru',
+        subject: 'Контакты клиента для обратной связи',
+        html:
+        await createMessageContact(contacts)
       })
       
       return res.json("Сообщение отправлено!")

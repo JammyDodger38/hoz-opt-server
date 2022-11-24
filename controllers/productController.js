@@ -91,6 +91,9 @@ class ProductController {
                     }
                 ]
                 },
+                order: [
+                    ['id', 'ASC']
+                ],
                 limit,
                 offset
             })
@@ -111,6 +114,9 @@ class ProductController {
                         }
                     ]
                 },
+                order: [
+                    ['id', 'ASC']
+                ],
                 limit,
                 offset
             })
@@ -131,6 +137,9 @@ class ProductController {
                         }
                     ]
                 },
+                order: [
+                    ['id', 'ASC']
+                ],
                 limit,
                 offset
             })
@@ -152,6 +161,9 @@ class ProductController {
                         }
                     ]
                 },
+                order: [
+                    ['id', 'ASC']
+                ],
                 limit,
                 offset
             })

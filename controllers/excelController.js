@@ -12,6 +12,7 @@ const ApiError = require('../error/ApiError')
 const {
     unlink
 } = require('fs')
+const { Op } = require('sequelize')
 
 const parse = async (fileName) => {
     let someType = ['Пиротехника', 'Новогодние товары', 'Прочее', 'Стеллажи металлические']
@@ -116,7 +117,7 @@ const addSubType = async (name, typeId) => {
     return subType
 }
 
-const addProduct = async (article, name, price, typeId, subTypeId, fileName) => {
+const addProduct = async (article, name, price, typeId, subTypeId, fileName, availability) => {
     let product
     if (subTypeId != '-') {
         product = await Product.create({
@@ -125,7 +126,8 @@ const addProduct = async (article, name, price, typeId, subTypeId, fileName) => 
             price,
             typeId,
             subTypeId,
-            img: fileName
+            img: fileName,
+            availability
         })
         return product
     } else {
@@ -136,7 +138,8 @@ const addProduct = async (article, name, price, typeId, subTypeId, fileName) => 
             price,
             typeId,
             subTypeId,
-            img: fileName
+            img: fileName,
+            availability
         })
     }
 
@@ -188,6 +191,9 @@ class ExcelController {
                     type = await addType(nameType)
                     tempType = nameType
                     typeId = type.id
+                } else {
+                    tempType = candidateType.name
+                    typeId = candidateType.id
                 }
                 if (someType.indexOf(tempType) == -1) {
                     let filterSubType = subTypeList.filter(item => item['nameType'] == tempType)
@@ -205,9 +211,30 @@ class ExcelController {
                             subType = await addSubType(nameSubType['nameSubType'], typeId)
                             tempSubType = nameSubType['nameSubType']
                             subTypeId = subType.id
+                        } else {
+                            tempSubType = candidateSubType['name']
+                            subTypeId = candidateSubType['id']
                         }
 
                         let filterProduct = productList.filter(item => item['type'] == tempType && item['subType'] == tempSubType)
+
+                        const changeAvailability = await Product.update(
+                            {
+                                availability: false,
+                            },
+                            {
+                                where: {
+                                    [Op.and]: [
+                                        {
+                                            typeId: typeId
+                                        },
+                                        {
+                                            subTypeId: subTypeId
+                                        }
+                                    ]
+                                }
+                            }
+                        )
 
                         for (let productObj of filterProduct) {
                             name = productObj['name']
@@ -225,13 +252,46 @@ class ExcelController {
                                 fileName = productObj['img']['hyperlink']
 
                                 let product
-                                product = await addProduct(productObj['article'], productObj['name'], productObj['cost'], typeId, subTypeId, fileName)
+                                product = await addProduct(productObj['article'], productObj['name'], productObj['cost'], typeId, subTypeId, fileName, true)
 
+                            } else {
+                                const changeAvailability = await Product.update(
+                                    {
+                                        availability: true,
+                                    },
+                                    {
+                                        where: {
+                                            [Op.and]: [
+                                                {
+                                                    article: productObj['article']
+                                                },
+                                                {
+                                                    name: productObj['name']
+                                                }
+                                            ]
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
                 } else if (someType.indexOf(tempType) != -1) {
                     let filterProduct = productList.filter(item => item['type'] == tempType && item['subType'] == '-')
+
+                    const changeAvailability = await Product.update(
+                        {
+                            availability: false,
+                        },
+                        {
+                            where: {
+                                [Op.and]: [
+                                    {
+                                        typeId: typeId
+                                    }
+                                ]
+                            }
+                        }
+                    )
 
                     for (let productObj of filterProduct) {
                         name = productObj['name']
@@ -249,7 +309,25 @@ class ExcelController {
                             fileName = productObj['img']['hyperlink']
 
                             let product
-                            product = await addProduct(productObj['article'], productObj['name'], productObj['cost'], typeId, productObj['subType'], fileName)
+                            product = await addProduct(productObj['article'], productObj['name'], productObj['cost'], typeId, productObj['subType'], fileName, true)
+                        } else {
+                            const changeAvailability = await Product.update(
+                                {
+                                    availability: true,
+                                },
+                                {
+                                    where: {
+                                        [Op.and]: [
+                                            {
+                                                article: productObj['article']
+                                            },
+                                            {
+                                                name: productObj['name']
+                                            }
+                                        ]
+                                    }
+                                }
+                            )
                         }
                     }
                 }

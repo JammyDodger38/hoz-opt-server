@@ -1,6 +1,7 @@
 const {
     BasketProduct,
-    Product
+    Product,
+    Basket
 } = require('../models/models')
 const { Op } = require('sequelize')
 
@@ -16,17 +17,23 @@ const findProductBasket = async (productId) => {
 class BasketController {
     async create(req, res) {
         const {
-            basketId,
+            userId,
             productId,
-            count,
+            count = 1,
             cost
         } = req.body
+
+        const basket = await Basket.findOne({
+            where: {
+                userId
+            }
+        })
 
         const goodsCheck = await BasketProduct.findOne({
             where: {
                 [Op.and]: [
                     {
-                        basketId
+                        basketId: basket.id
                     },
                     {
                         productId
@@ -37,7 +44,7 @@ class BasketController {
 
         if (!goodsCheck) {
             const addBasket = await BasketProduct.create({
-                basketId,
+                basketId: basket.id,
                 productId,
                 count,
                 cost
@@ -45,14 +52,14 @@ class BasketController {
         } else {
             const changeQuantity = await BasketProduct.update(
                 {
-                    count: (goodsCheck.count+1),
-                    cost: Number(cost*(goodsCheck.count+1)).toFixed(2)
+                    count: (+goodsCheck.count + +count),
+                    cost: Number(+cost + +goodsCheck.cost).toFixed(2)
                 },
                 {
                     where: {
                         [Op.and]: [
                             {
-                                basketId
+                                basketId: basket.id
                             },
                             {
                                 productId
@@ -64,16 +71,16 @@ class BasketController {
         }
 
         
-        const basket = await BasketProduct.findAll({
+        const cart = await BasketProduct.findAll({
             where: {
-                basketId: basketId
+                basketId: basket.id
             }
         },)
 
         const allBasketProduct = []
         const basketIdRow = []
 
-        for (let value of basket) {
+        for (let value of cart) {
             const prod = await findProductBasket(value.productId)
             allBasketProduct.push(prod)
             basketIdRow.push({id: value.id, count: value.count, cost: value.cost})
@@ -84,19 +91,25 @@ class BasketController {
 
     async getAll(req, res) {
         const {
-            basketId
+            userId
         } = req.query
 
-        const basket = await BasketProduct.findAll({
+        const basket = await Basket.findOne({
             where: {
-                basketId: basketId
+                userId
+            }
+        })
+
+        const cart = await BasketProduct.findAll({
+            where: {
+                basketId: basket.id
             }
         },)
 
         const allBasketProduct = []
         const basketIdRow = []
 
-        for (let value of basket) {
+        for (let value of cart) {
             const prod = await findProductBasket(value.productId)
             allBasketProduct.push(prod)
             basketIdRow.push({id: value.id, count: value.count, cost: value.cost})
@@ -117,6 +130,77 @@ class BasketController {
         })
 
         return res.json(deleteProd)
+    }
+
+    async editCount(req, res) {
+        const {
+            userId,
+            productId,
+            count = 1,
+        } = req.body
+
+        const basket = await Basket.findOne({
+            where: {
+                userId
+            }
+        })
+
+        const goodsCheck = await BasketProduct.findOne({
+            where: {
+                [Op.and]: [
+                    {
+                        basketId: basket.id
+                    },
+                    {
+                        productId
+                    }
+                ]
+            }
+        })
+
+        if (!goodsCheck) {
+            
+        } else {
+            const changeQuantity = await BasketProduct.update(
+                {
+                    count: count,
+                    cost: Number(goodsCheck.cost / goodsCheck.count * +count).toFixed(2)
+                },
+                {
+                    where: {
+                        [Op.and]: [
+                            {
+                                basketId: basket.id
+                            },
+                            {
+                                productId
+                            }
+                        ]
+                    }
+                }
+            )
+        }
+
+        
+        const cart = await BasketProduct.findAll({
+            where: {
+                basketId: basket.id
+            },
+            order: [
+                ['id', 'ASC']
+            ],
+        },)
+
+        const allBasketProduct = []
+        const basketIdRow = []
+
+        for (let value of cart) {
+            const prod = await findProductBasket(value.productId)
+            allBasketProduct.push(prod)
+            basketIdRow.push({id: value.id, count: value.count, cost: value.cost})
+        }
+
+        return res.json([allBasketProduct, basketIdRow])
     }
 }
 

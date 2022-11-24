@@ -87,6 +87,9 @@ const Product = sequelize.define('product', {
         type: DataTypes.STRING,
         allowNull: false
     },
+    availability: {
+        type: DataTypes.BOOLEAN
+    }
 })
 
 const Type = sequelize.define('type', {
