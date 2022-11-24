@@ -1,7 +1,6 @@
 const uuid = require('uuid')
 const path = require('path')
 const createError = require('http-errors')
-const fs = require('fs/promises')
 const {
     Product,
     ProductInfo,
@@ -11,7 +10,7 @@ const {
 const ApiError = require('../error/ApiError')
 const {
     unlink
-} = require('fs')
+} = require('fs/promises')
 const { Op } = require('sequelize')
 
 const parse = async (fileName) => {
