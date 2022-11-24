@@ -5,7 +5,7 @@ const ApiError = require('../error/ApiError')
 const path = require('path')
 const {
     unlink
-} = require('fs/promises')
+} = require('fs').promises;
 
 class SubTypeController {
     async create(req, res, next) {

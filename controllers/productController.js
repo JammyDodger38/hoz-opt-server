@@ -8,7 +8,7 @@ const {
 const ApiError = require('../error/ApiError')
 const {
     unlink
-} = require('fs/promises')
+} = require('fs').promises;
 const { Op } = require('sequelize')
 
 class ProductController {

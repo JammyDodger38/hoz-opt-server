@@ -6,7 +6,7 @@ const ApiError = require('../error/ApiError')
 const path = require('path')
 const {
     unlink
-} = require('fs')
+} = require('fs').promises;
 
 class TypeController {
     async create(req, res, next) {
