@@ -101,14 +101,23 @@ class UserController {
     }
 
     async check(req, res, next) {
-        const token = generateJwt(req.user.id, req.user.email, req.user.name, req.user.face, req.user.inn, req.user.opt, req.user.role)
+        const newUser = await User.findOne({
+            where: {
+                id: req.user.id
+            }
+        })
+        const token = generateJwt(req.user.id, req.user.email, req.user.name, req.user.face, req.user.inn, newUser.opt, newUser.role)
         return res.json({
             token
         })
     }
 
     async getAll(req, res, next) {
-        const users = await User.findAndCountAll()
+        const users = await User.findAndCountAll({
+            order: [
+                ['id', 'ASC']
+            ],
+        })
         return res.json(users)
     }
 

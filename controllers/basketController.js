@@ -132,6 +132,26 @@ class BasketController {
         return res.json(deleteProd)
     }
 
+    async deleteAll(req, res) {
+        const {
+            userId
+        } = req.query
+
+        const basket = await Basket.findOne({
+            where: {
+                userId
+            }
+        })
+
+        const deleteProd = await BasketProduct.destroy({
+            where: {
+                basketId: basket.id
+            }
+        })
+
+        return res.json([], [])
+    }
+
     async editCount(req, res) {
         const {
             userId,

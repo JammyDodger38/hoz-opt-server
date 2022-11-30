@@ -42,7 +42,8 @@ class ProductController {
                     price,
                     typeId,
                     subTypeId,
-                    img: fileName
+                    img: fileName,
+                    availability: true,
                 })
 
                 if (info) {
@@ -71,11 +72,35 @@ class ProductController {
             page,
             filter
         } = req.query
-        page = page || 1
-        limit = limit || 9
-        let offset = page * limit - limit
+        let offset
+        if (limit != null) {
+            page = page || 1
+            limit = limit || 9
+            offset = page * limit - limit
+        }
+        
 
         let products;
+        if (!typeId && !subTypeId && !limit && !page) {
+            products = await Product.findAndCountAll({
+                where: {
+                    [Op.or]: [
+                    {
+                        name: {
+                        [Op.substring]: filter
+                    }},
+                    {
+                        article: {
+                            [Op.substring]: filter
+                        },
+                    }
+                ]
+                },
+                order: [
+                    ['id', 'ASC']
+                ],
+            })
+        }
         if (!typeId && !subTypeId) {
             products = await Product.findAndCountAll({
                 where: {
