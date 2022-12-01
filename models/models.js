@@ -76,7 +76,6 @@ const Product = sequelize.define('product', {
     },
     name: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false
     },
     price: {

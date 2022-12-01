@@ -81,7 +81,8 @@ class ProductController {
         
 
         let products;
-        if (!typeId && !subTypeId && !limit && !page) {
+
+        if (filter !== "") {
             products = await Product.findAndCountAll({
                 where: {
                     [Op.or]: [
@@ -100,34 +101,11 @@ class ProductController {
                     ['id', 'ASC']
                 ],
             })
-        }
-        if (!typeId && !subTypeId) {
-            products = await Product.findAndCountAll({
-                where: {
-                    [Op.or]: [
-                    {
-                        name: {
-                        [Op.substring]: filter
-                    }},
-                    {
-                        article: {
-                            [Op.substring]: filter
-                        },
-                    }
-                ]
-                },
-                order: [
-                    ['id', 'ASC']
-                ],
-                limit,
-                offset
-            })
-        }
-        if (typeId && !subTypeId) {
-            products = await Product.findAndCountAll({
-                where: {
-                    typeId,
-                    [Op.or]: [
+        } else {
+            if (!typeId && !subTypeId && !limit && !page) {
+                products = await Product.findAndCountAll({
+                    where: {
+                        [Op.or]: [
                         {
                             name: {
                             [Op.substring]: filter
@@ -138,19 +116,16 @@ class ProductController {
                             },
                         }
                     ]
-                },
-                order: [
-                    ['id', 'ASC']
-                ],
-                limit,
-                offset
-            })
-        }
-        if (!typeId && subTypeId) {
-            products = await Product.findAndCountAll({
-                where: {
-                    subTypeId,
-                    [Op.or]: [
+                    },
+                    order: [
+                        ['id', 'ASC']
+                    ],
+                })
+            }
+            if (!typeId && !subTypeId) {
+                products = await Product.findAndCountAll({
+                    where: {
+                        [Op.or]: [
                         {
                             name: {
                             [Op.substring]: filter
@@ -161,38 +136,86 @@ class ProductController {
                             },
                         }
                     ]
-                },
-                order: [
-                    ['id', 'ASC']
-                ],
-                limit,
-                offset
-            })
-        }
-        if (typeId && subTypeId) {
-            products = await Product.findAndCountAll({
-                where: {
-                    typeId,
-                    subTypeId,
-                    [Op.or]: [
-                        {
-                            name: {
-                            [Op.substring]: filter
-                        }},
-                        {
-                            article: {
+                    },
+                    order: [
+                        ['id', 'ASC']
+                    ],
+                    limit,
+                    offset
+                })
+            }
+            if (typeId && !subTypeId) {
+                products = await Product.findAndCountAll({
+                    where: {
+                        typeId,
+                        [Op.or]: [
+                            {
+                                name: {
                                 [Op.substring]: filter
-                            },
-                        }
-                    ]
-                },
-                order: [
-                    ['id', 'ASC']
-                ],
-                limit,
-                offset
-            })
+                            }},
+                            {
+                                article: {
+                                    [Op.substring]: filter
+                                },
+                            }
+                        ]
+                    },
+                    order: [
+                        ['id', 'ASC']
+                    ],
+                    limit,
+                    offset
+                })
+            }
+            if (!typeId && subTypeId) {
+                products = await Product.findAndCountAll({
+                    where: {
+                        subTypeId,
+                        [Op.or]: [
+                            {
+                                name: {
+                                [Op.substring]: filter
+                            }},
+                            {
+                                article: {
+                                    [Op.substring]: filter
+                                },
+                            }
+                        ]
+                    },
+                    order: [
+                        ['id', 'ASC']
+                    ],
+                    limit,
+                    offset
+                })
+            }
+            if (typeId && subTypeId) {
+                products = await Product.findAndCountAll({
+                    where: {
+                        typeId,
+                        subTypeId,
+                        [Op.or]: [
+                            {
+                                name: {
+                                [Op.substring]: filter
+                            }},
+                            {
+                                article: {
+                                    [Op.substring]: filter
+                                },
+                            }
+                        ]
+                    },
+                    order: [
+                        ['id', 'ASC']
+                    ],
+                    limit,
+                    offset
+                })
+            }
         }
+
         return res.json(products)
     }
 

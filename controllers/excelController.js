@@ -235,44 +235,121 @@ class ExcelController {
                             }
                         )
 
-                        for (let productObj of filterProduct) {
-                            name = productObj['name']
-                            const candidateProduct = await Product.findOne({
-                                where: {
-                                    name
+                        let objForCreate = []
+
+                        let productForCreate = []
+                        let productForUpdate = []
+
+                        let allProductName = []
+                        
+                        filterProduct.forEach((productItem) => {
+                            allProductName.push(productItem['name'])
+                        })
+
+                        const findCondidate = await Product.findAll({
+                            where: {
+                                name: {
+                                    [Op.in]: allProductName
                                 }
+                            }
+                        })
+
+                        if (findCondidate) {
+                            findCondidate.forEach((productItem) => {
+                                productForUpdate.push(productItem.id)
                             })
-                            if (!candidateProduct) {
-                                if (productObj['img'] == undefined) {
-                                    productObj['img'] = {
-                                        hyperlink: 'NONE'
-                                    }
-                                }
-                                fileName = productObj['img']['hyperlink']
 
-                                let product
-                                product = await addProduct(productObj['article'], productObj['name'], productObj['cost'], typeId, subTypeId, fileName, true)
-
-                            } else {
-                                const changeAvailability = await Product.update(
-                                    {
-                                        availability: true,
-                                    },
-                                    {
-                                        where: {
-                                            [Op.and]: [
-                                                {
-                                                    article: productObj['article']
-                                                },
-                                                {
-                                                    name: productObj['name']
-                                                }
-                                            ]
+                            const changeAvail = await Product.update(
+                                {
+                                    availability: true,
+                                },
+                                {
+                                    where: {
+                                        id: {
+                                            [Op.in]: productForUpdate
                                         }
                                     }
-                                )
-                            }
+                                }
+                            )
+
+                            filterProduct.forEach((productItem) => {
+                                if (!findCondidate.some(item => item.name === productItem['name'])) {
+                                    objForCreate.push(productItem)
+                                }
+                            })
+
+                        } else {
+                            filterProduct.forEach((productItem) => {
+                                objForCreate.push(productItem)
+                            })
                         }
+
+                        objForCreate.forEach((productItem) => {
+                            if (productItem['img'] == undefined) {
+                                productItem['img'] = {
+                                    hyperlink: 'NONE'
+                                }
+                            }
+                            const fileName = productItem['img']['hyperlink']
+                            productForCreate.push({
+                                article: productItem['article'],
+                                name: productItem['name'],
+                                price: productItem['cost'],
+                                typeId: typeId, 
+                                subTypeId: subTypeId,
+                                img: fileName,
+                                availability: true
+                                }
+                            )
+                        })
+                        
+                        const createProd = await Product.bulkCreate(productForCreate)
+                        
+                        // for (let productObj of filterProduct) {
+                        //     name = productObj['name']
+                        //     const candidateProduct = await Product.findOne({
+                        //         where: {
+                        //             name
+                        //         }
+                        //     })
+                        //     if (!candidateProduct) {
+                        //         if (productObj['img'] == undefined) {
+                        //             productObj['img'] = {
+                        //                 hyperlink: 'NONE'
+                        //             }
+                        //         }
+                        //         fileName = productObj['img']['hyperlink']
+
+                        //         let product
+                        //         product = await addProduct(
+                        //             productObj['article'],
+                        //             productObj['name'],
+                        //             productObj['cost'],
+                        //             typeId, subTypeId,
+                        //             fileName,
+                        //             true
+                        //         )
+
+                        //     } else {
+                        //         const changeAvailability = await Product.update(
+                        //             {
+                        //                 availability: true,
+                        //             },
+                        //             {
+                        //                 where: {
+                        //                     [Op.and]: [
+                        //                         {
+                        //                             article: productObj['article']
+                        //                         },
+                        //                         {
+                        //                             name: productObj['name']
+                        //                         }
+                        //                     ]
+                        //                 }
+                        //             }
+                        //         )
+                        //     }
+                        // }
                     }
                 } else if (someType.indexOf(tempType) != -1) {
                     let filterProduct = productList.filter(item => item['type'] == tempType && item['subType'] == '-')
