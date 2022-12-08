@@ -88,6 +88,10 @@ const Product = sequelize.define('product', {
     },
     availability: {
         type: DataTypes.BOOLEAN
+    },
+    handleCreate: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
     }
 })
 

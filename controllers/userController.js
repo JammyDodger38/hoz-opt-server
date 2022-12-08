@@ -41,7 +41,7 @@ class UserController {
             }
         })
         if (candidate) {
-            return next(ApiError.badRequest('пользователь с таким email уже существует'))
+            return next(ApiError.badRequest('Пользователь с таким email уже существует'))
         }
         const hashPassword = await bcrypt.hash(password, 5)
 

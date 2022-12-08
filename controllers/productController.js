@@ -44,6 +44,7 @@ class ProductController {
                     subTypeId,
                     img: fileName,
                     availability: true,
+                    handleCreate: true,
                 })
 
                 if (info) {
@@ -88,11 +89,11 @@ class ProductController {
                     [Op.or]: [
                     {
                         name: {
-                        [Op.substring]: filter
+                        [Op.iLike]: '%' + filter + '%'
                     }},
                     {
                         article: {
-                            [Op.substring]: filter
+                            [Op.iLike]: '%' + filter + '%'
                         },
                     }
                 ]
@@ -137,7 +138,7 @@ class ProductController {
                         }
                     ]
                     },
-                    order: [
+                    order:[
                         ['id', 'ASC']
                     ],
                     limit,
