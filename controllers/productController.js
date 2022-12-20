@@ -3,13 +3,15 @@ const path = require('path')
 const {
     Product,
     ProductInfo,
-    BasketProduct
+    BasketProduct,
+    Type,
+    SubType
 } = require('../models/models')
 const ApiError = require('../error/ApiError')
 const {
     unlink
 } = require('fs').promises;
-const { Op } = require('sequelize')
+const { Op, where } = require('sequelize')
 
 class ProductController {
     async create(req, res, next) {
@@ -18,6 +20,7 @@ class ProductController {
                 article,
                 name,
                 price,
+                img,
                 typeId,
                 subTypeId,
                 info
@@ -31,18 +34,19 @@ class ProductController {
             if (candidate) {
                 return next(ApiError.badRequest('Товар с таким артикулом уже существует!'))
             } else {
-                const {
-                    img
-                } = req.files
-                let fileName = uuid.v4() + ".jpg"
-                img.mv(path.resolve(__dirname, '..', 'static', fileName))
+                // const {
+                //     img
+                // } = req.files
+                // let fileName = uuid.v4() + ".jpg"
+                // img.mv(path.resolve(__dirname, '..', 'static', fileName))
                 const product = await Product.create({
                     article,
                     name,
                     price,
+                    img,
                     typeId,
                     subTypeId,
-                    img: fileName,
+                    // img: fileName,
                     availability: true,
                     handleCreate: true,
                 })
@@ -101,43 +105,12 @@ class ProductController {
                 order: [
                     ['id', 'ASC']
                 ],
+                limit,
+                offset
             })
         } else {
-            if (!typeId && !subTypeId && !limit && !page) {
-                products = await Product.findAndCountAll({
-                    where: {
-                        [Op.or]: [
-                        {
-                            name: {
-                            [Op.substring]: filter
-                        }},
-                        {
-                            article: {
-                                [Op.substring]: filter
-                            },
-                        }
-                    ]
-                    },
-                    order: [
-                        ['id', 'ASC']
-                    ],
-                })
-            }
             if (!typeId && !subTypeId) {
                 products = await Product.findAndCountAll({
-                    where: {
-                        [Op.or]: [
-                        {
-                            name: {
-                            [Op.substring]: filter
-                        }},
-                        {
-                            article: {
-                                [Op.substring]: filter
-                            },
-                        }
-                    ]
-                    },
                     order:[
                         ['id', 'ASC']
                     ],
@@ -149,17 +122,6 @@ class ProductController {
                 products = await Product.findAndCountAll({
                     where: {
                         typeId,
-                        [Op.or]: [
-                            {
-                                name: {
-                                [Op.substring]: filter
-                            }},
-                            {
-                                article: {
-                                    [Op.substring]: filter
-                                },
-                            }
-                        ]
                     },
                     order: [
                         ['id', 'ASC']
@@ -172,17 +134,6 @@ class ProductController {
                 products = await Product.findAndCountAll({
                     where: {
                         subTypeId,
-                        [Op.or]: [
-                            {
-                                name: {
-                                [Op.substring]: filter
-                            }},
-                            {
-                                article: {
-                                    [Op.substring]: filter
-                                },
-                            }
-                        ]
                     },
                     order: [
                         ['id', 'ASC']
@@ -196,17 +147,6 @@ class ProductController {
                     where: {
                         typeId,
                         subTypeId,
-                        [Op.or]: [
-                            {
-                                name: {
-                                [Op.substring]: filter
-                            }},
-                            {
-                                article: {
-                                    [Op.substring]: filter
-                                },
-                            }
-                        ]
                     },
                     order: [
                         ['id', 'ASC']
@@ -234,7 +174,65 @@ class ProductController {
                 as: 'info'
             }]
         }, )
-        return res.json(product)
+        const typeName = await Type.findOne({
+            where: {
+                id: product.typeId
+            }
+        })
+        const subTypeName = await SubType.findOne({
+            where: {
+                id: product.subTypeId
+            }
+        })
+        return res.json({product: product, type: typeName, subType: subTypeName})
+    }
+
+    async editOne(req, res) {
+        let {
+            article,
+            name,
+            price,
+            img,
+            info
+        } = req.body
+
+        const editProduct = await Product.update(
+            {
+                name: name,
+                price: price,
+                img: img,
+            },
+            {
+                where: {
+                    article: article
+                }
+            }
+        )
+
+        const product = await Product.findOne({
+            where: {
+                article: article
+            }
+        })
+
+        ProductInfo.destroy({
+            where: {
+                productId: product.id
+            }
+        })
+        
+        if (info.length > 0) {
+            info = JSON.parse(info)
+            info.forEach(i =>
+                ProductInfo.create({
+                    title: i.title,
+                    description: i.description,
+                    productId: product.id
+                })
+            )
+        }
+
+        return res.json(editProduct)
     }
 
     async delete(req, res) {
@@ -242,11 +240,11 @@ class ProductController {
             id
         } = req.params
         let productId = id
-        const productImg = await Product.findOne({
-            where: {
-                id
-            },
-        }, )
+        // const productImg = await Product.findOne({
+        //     where: {
+        //         id
+        //     },
+        // }, )
         const product = await Product.destroy({
             where: {
                 id
@@ -261,10 +259,10 @@ class ProductController {
                 productId
             },
         })
-        let pathFile = path.resolve(__dirname, '..', 'static', productImg.img)
-        unlink(pathFile, (err) => {
-            if (err) throw err;
-        })
+        // let pathFile = path.resolve(__dirname, '..', 'static', productImg.img)
+        // unlink(pathFile, (err) => {
+        //     if (err) throw err;
+        // })
         return res.json(product)
     }
 }

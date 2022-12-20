@@ -149,7 +149,7 @@ class BasketController {
             }
         })
 
-        return res.json([], [])
+        return res.json([])
     }
 
     async editCount(req, res) {

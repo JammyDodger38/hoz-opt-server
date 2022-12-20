@@ -14,7 +14,6 @@ const {
 const { Op } = require('sequelize')
 
 const parse = async (fileName) => {
-    let someType = ['Пиротехника', 'Новогодние товары', 'Прочее', 'Стеллажи металлические']
     let tempList = []
 
     let typeList = []
@@ -23,6 +22,7 @@ const parse = async (fileName) => {
 
     let tempType = ''
     let tempSubType = ''
+    let color
 
     const xl = require('exceljs');
     const workbook = new xl.Workbook();
@@ -32,44 +32,49 @@ const parse = async (fileName) => {
     worksheet.eachRow({
         includeEmpty: false
     }, (row, rowNumber) => {
+        
+        //FF800000 красный
+        //FF008000 зеленый
+        color = row.getCell(3).font.color
 
         if (rowNumber > 15 && rowNumber < worksheet.rowCount - 14) {
-            tempList.push({
-                index: rowNumber,
-                body: row.values
-            })
+            if (color === undefined) {
+                tempList.push({
+                    index: rowNumber,
+                    body: row.values,
+                    class: 'product'
+                })
+            } else if (color.argb === 'FF800000') {
+                tempList.push({
+                    index: rowNumber,
+                    body: row.values,
+                    class: 'type'
+                })
+            } else if (color.argb === 'FF008000') {
+                tempList.push({
+                    index: rowNumber,
+                    body: row.values,
+                    class: 'subType'
+                })
+            }
         }
     })
 
     tempList.forEach((value, id) => {
-        if (value['body'].length == 4) {
-            if (tempList[id + 1]['body'].length != 9) {
-                typeList.push(tempList[id]['body'][3])
+        if (value['class'] === "type") {
 
-                tempType = tempList[id]['body'][3]
-                tempSubType = tempList[id + 1]['body'][3]
+            typeList.push(tempList[id]['body'][3])
+            tempType = tempList[id]['body'][3]
 
-                subTypeList.push({
-                    nameType: tempType,
-                    nameSubType: tempList[id + 1]['body'][3]
-                })
-            } else if (tempList[id + 1]['body'].length == 9 && tempList[id - 1]['body'].length == 9) {
-                if (someType.indexOf(tempList[id]['body'][3]) != -1) {
-                    typeList.push(tempList[id]['body'][3])
-                    tempType = tempList[id]['body'][3]
-                } else {
-                    tempSubType = tempList[id]['body'][3]
-                    subTypeList.push({
-                        nameType: tempType,
-                        nameSubType: tempList[id]['body'][3]
-                    })
-                }
-            }
-
-        } else if (value['body'].length == 9) {
-            if (someType.indexOf(tempType) != -1) {
-                tempSubType = '-'
-            }
+            tempSubType = '-'
+            
+        } else if (value['class'] === "subType") {
+            tempSubType = tempList[id]['body'][3]
+            subTypeList.push({
+                nameType: tempType,
+                nameSubType: tempList[id]['body'][3]
+            })
+        } else if (value['class'] === "product") {
             if (tempList[id]['body'][4] === undefined) {
                 tempList[id]['body'][4] = 0
             }
@@ -164,6 +169,11 @@ class ExcelController {
                 unlink(pathFile, (err) => {
                     if (err) throw err;
                 })
+            } else {
+                pathFile = path.resolve(__dirname, '..', 'static', 'tempExcel', fileName)
+                unlink(pathFile, (err) => {
+                    if (err) throw err;
+                })
             }
 
             let type
@@ -171,8 +181,6 @@ class ExcelController {
             let tempSubType = ''
             let typeId
             let subTypeId
-            let someType = ['Пиротехника', 'Новогодние товары', 'Прочее', 'Стеллажи металлические']
-
 
             for (let nameType of typeList) {
                 let name = nameType
@@ -190,9 +198,10 @@ class ExcelController {
                     tempType = candidateType.name
                     typeId = candidateType.id
                 }
-                if (someType.indexOf(tempType) == -1) {
-                    let filterSubType = subTypeList.filter(item => item['nameType'] == tempType)
 
+                let filterSubType = subTypeList.filter(item => item['nameType'] == tempType)
+
+                if (filterSubType.length > 0) {
                     for (let nameSubType of filterSubType) {
 
                         name = nameSubType['nameSubType']
@@ -239,16 +248,16 @@ class ExcelController {
                         let productForCreate = []
                         let productForUpdate = []
 
-                        let allProductName = []
+                        let allProductArticle = []
                         
                         filterProduct.forEach((productItem) => {
-                            allProductName.push(productItem['name'])
+                            allProductArticle.push(String(productItem['article']))
                         })
 
                         const findCondidate = await Product.findAll({
                             where: {
-                                name: {
-                                    [Op.in]: allProductName
+                                article: {
+                                    [Op.in]: allProductArticle
                                 }
                             }
                         })
@@ -272,7 +281,7 @@ class ExcelController {
                             )
 
                             filterProduct.forEach((productItem) => {
-                                if (!findCondidate.some(item => item.name === productItem['name'])) {
+                                if (!findCondidate.some(item => item.article === String(productItem['article']))) {
                                     objForCreate.push(productItem)
                                 }
                             })
@@ -304,7 +313,7 @@ class ExcelController {
                         
                         const createProd = await Product.bulkCreate(productForCreate)
                     }
-                } else if (someType.indexOf(tempType) != -1) {
+                } else {
                     let filterProduct = productList.filter(item => item['type'] == tempType && item['subType'] == '-')
 
                     const changeAvailability = await Product.update(
@@ -330,16 +339,16 @@ class ExcelController {
                     let productForCreate = []
                     let productForUpdate = []
 
-                    let allProductName = []
+                    let allProductArticle = []
                     
                     filterProduct.forEach((productItem) => {
-                        allProductName.push(productItem['name'])
+                        allProductArticle.push(String(productItem['article']))
                     })
 
                     const findCondidate = await Product.findAll({
                         where: {
-                            name: {
-                                [Op.in]: allProductName
+                            article: {
+                                [Op.in]: allProductArticle
                             }
                         }
                     })
@@ -363,7 +372,7 @@ class ExcelController {
                         )
 
                         filterProduct.forEach((productItem) => {
-                            if (!findCondidate.some(item => item.name === productItem['name'])) {
+                            if (!findCondidate.some(item => item.article === String(productItem['article']))) {
                                 objForCreate.push(productItem)
                             }
                         })
