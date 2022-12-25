@@ -172,7 +172,10 @@ class ProductController {
             include: [{
                 model: ProductInfo,
                 as: 'info'
-            }]
+            }],
+            order: [
+                [{model: ProductInfo, as: 'info'}, 'id', 'ASC']
+            ]
         }, )
         const typeName = await Type.findOne({
             where: {
@@ -188,82 +191,92 @@ class ProductController {
     }
 
     async editOne(req, res) {
-        let {
-            article,
-            name,
-            price,
-            img,
-            info
-        } = req.body
-
-        const editProduct = await Product.update(
-            {
-                name: name,
-                price: price,
-                img: img,
-            },
-            {
+        try {
+            let {
+                article,
+                name,
+                price,
+                img,
+                info
+            } = req.body
+    
+            const editProduct = await Product.update(
+                {
+                    name: name,
+                    price: price,
+                    img: img,
+                },
+                {
+                    where: {
+                        article: article
+                    }
+                }
+            )
+    
+            const product = await Product.findOne({
                 where: {
                     article: article
                 }
-            }
-        )
-
-        const product = await Product.findOne({
-            where: {
-                article: article
-            }
-        })
-
-        ProductInfo.destroy({
-            where: {
-                productId: product.id
-            }
-        })
-        
-        if (info.length > 0) {
-            info = JSON.parse(info)
-            info.forEach(i =>
-                ProductInfo.create({
-                    title: i.title,
-                    description: i.description,
+            })
+    
+            await ProductInfo.destroy({
+                where: {
                     productId: product.id
-                })
-            )
+                }
+            })
+            
+            if (info.length > 0) {
+                info = JSON.parse(info)
+                info.forEach(i =>
+                    ProductInfo.create({
+                        title: i.title,
+                        description: i.description,
+                        productId: product.id
+                    })
+                )
+            }
+    
+            return res.json(editProduct)
+        } catch(e) {
+            next(ApiError.badRequest(e.message))
         }
 
-        return res.json(editProduct)
+        
     }
 
     async delete(req, res) {
-        const {
-            id
-        } = req.params
-        let productId = id
-        // const productImg = await Product.findOne({
-        //     where: {
-        //         id
-        //     },
-        // }, )
-        const product = await Product.destroy({
-            where: {
+        try {
+            const {
                 id
-            },
-            include: [{
-                model: ProductInfo,
-                as: 'info'
-            }]
-        })
-        const productInf = await ProductInfo.destroy({
-            where: {
-                productId
-            },
-        })
-        // let pathFile = path.resolve(__dirname, '..', 'static', productImg.img)
-        // unlink(pathFile, (err) => {
-        //     if (err) throw err;
-        // })
-        return res.json(product)
+            } = req.params
+            let productId = id
+            // const productImg = await Product.findOne({
+            //     where: {
+            //         id
+            //     },
+            // }, )
+            const product = await Product.destroy({
+                where: {
+                    id
+                },
+                include: [{
+                    model: ProductInfo,
+                    as: 'info'
+                }]
+            })
+            const productInf = await ProductInfo.destroy({
+                where: {
+                    productId
+                },
+            })
+            // let pathFile = path.resolve(__dirname, '..', 'static', productImg.img)
+            // unlink(pathFile, (err) => {
+            //     if (err) throw err;
+            // })
+            return res.json(product)
+        } catch(e) {
+            next(ApiError.badRequest(e.message))
+        }
     }
 }
 

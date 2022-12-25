@@ -263,22 +263,46 @@ class ExcelController {
                         })
 
                         if (findCondidate) {
-                            findCondidate.forEach((productItem) => {
-                                productForUpdate.push(productItem.id)
-                            })
-
-                            const changeAvail = await Product.update(
-                                {
-                                    availability: true,
-                                },
-                                {
-                                    where: {
-                                        id: {
-                                            [Op.in]: productForUpdate
+                            for (let product of filterProduct) {
+                                if (findCondidate.some(item => item.article === String(product['article']))) {
+                                    if (product['img'] == undefined) {
+                                        product['img'] = {
+                                            hyperlink: 'NONE'
                                         }
                                     }
+                                    const fileName = product['img']['hyperlink']
+    
+                                    const changeAvail = await Product.update(
+                                        {
+                                            name: product.name,
+                                            price: product.cost,
+                                            img: fileName,
+                                            availability: true,
+                                        },
+                                        {
+                                            where: {
+                                                article: product.article
+                                            }
+                                        }
+                                    )
                                 }
-                            )
+                            }
+                            // findCondidate.forEach((productItem) => {
+                            //     productForUpdate.push(productItem.id)
+                            // })
+
+                            // const changeAvail = await Product.update(
+                            //     {
+                            //         availability: true,
+                            //     },
+                            //     {
+                            //         where: {
+                            //             id: {
+                            //                 [Op.in]: productForUpdate
+                            //             }
+                            //         }
+                            //     }
+                            // )
 
                             filterProduct.forEach((productItem) => {
                                 if (!findCondidate.some(item => item.article === String(productItem['article']))) {
@@ -354,22 +378,31 @@ class ExcelController {
                     })
 
                     if (findCondidate) {
-                        findCondidate.forEach((productItem) => {
-                            productForUpdate.push(productItem.id)
-                        })
-
-                        const changeAvail = await Product.update(
-                            {
-                                availability: true,
-                            },
-                            {
-                                where: {
-                                    id: {
-                                        [Op.in]: productForUpdate
+                        
+                        for (let product of filterProduct) {
+                            if (findCondidate.some(item => item.article === String(product['article']))) {
+                                if (product['img'] == undefined) {
+                                    product['img'] = {
+                                        hyperlink: 'NONE'
                                     }
                                 }
+                                const fileName = product['img']['hyperlink']
+
+                                const changeAvail = await Product.update(
+                                    {
+                                        name: product.name,
+                                        price: product.cost,
+                                        img: fileName,
+                                        availability: true,
+                                    },
+                                    {
+                                        where: {
+                                            article: product.article
+                                        }
+                                    }
+                                )
                             }
-                        )
+                        }
 
                         filterProduct.forEach((productItem) => {
                             if (!findCondidate.some(item => item.article === String(productItem['article']))) {
