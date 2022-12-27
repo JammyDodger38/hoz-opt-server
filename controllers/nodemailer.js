@@ -25,12 +25,12 @@ const createMessageCart = async (cart, numOrder) => {
       }
       message += "Способ оплаты: " + item.pay + "<br>"
       if (item.comment !== '') {
-        message += "Комментарий: " + item.comment + "<br>" + "<strong>Список товаров:</strong> <br>"
+        message += "Комментарий: " + item.comment + "<br>" + "<br><strong>Список товаров:</strong> <br>"
       } else {
-        message += "<strong>Список товаров:</strong> <br>"
+        message += "<br><strong>Список товаров:</strong> <br>"
       }
     } else {
-      message += "Артикул - " + item.article + ",<br>" + "Наименование: " + item.name + ",<br>" + "Количество: " + item.count + ",<br>" + "Стоимость: " + item.cost + "<br><hr>"
+      message += "Артикул - " + item.article + ",<br>" + "Наименование: " + item.name + ",<br>" + "Количество: " + item.count + ",<br>" + "Стоимость: " + item.cost + " руб." + "<br><hr>"
     }
   }
   return String(message)
@@ -54,6 +54,14 @@ class EmailController {
 
       await transporter.sendMail({
         from: '"ХозОптСклад" <blad20002000@mail.ru>',
+        to: 'hozoptsklad@mail.ru, hozoptsklad@mail.ru',
+        subject: 'Заказ клиента',
+        html:
+        await createMessageCart(cart, numOrder)
+      })
+
+      await transporter.sendMail({
+        from: '"ХозОптСклад" <blad20002000@mail.ru>',
         to: 'blad20002000@mail.ru, blad20002000@mail.ru',
         subject: 'Заказ клиента',
         html:
@@ -65,6 +73,14 @@ class EmailController {
 
   async sendContacts(req, res) {
       const contacts = req.body
+      
+      await transporter.sendMail({
+        from: '"ХозОптСклад" <blad20002000@mail.ru>',
+        to: 'hozoptsklad@mail.ru, hozoptsklad@mail.ru',
+        subject: 'Контакты клиента для обратной связи',
+        html:
+        await createMessageContact(contacts)
+      })
 
       await transporter.sendMail({
         from: '"ХозОптСклад" <blad20002000@mail.ru>',

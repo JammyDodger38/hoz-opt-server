@@ -69,59 +69,39 @@ class ProductController {
         }
     }
 
-    async getAll(req, res) {
-        let {
-            typeId,
-            subTypeId,
-            limit,
-            page,
-            filter
-        } = req.query
-        let offset
-        if (limit != null) {
-            page = page || 1
-            limit = limit || 9
-            offset = page * limit - limit
-        }
-        
-
-        let products;
-
-        if (filter !== "") {
-            products = await Product.findAndCountAll({
-                where: {
-                    [Op.or]: [
-                    {
-                        name: {
-                        [Op.iLike]: '%' + filter + '%'
-                    }},
-                    {
-                        article: {
-                            [Op.iLike]: '%' + filter + '%'
-                        },
-                    }
-                ]
-                },
-                order: [
-                    ['id', 'ASC']
-                ],
+    async getAll(req, res, next) {
+        try {
+            let {
+                typeId,
+                subTypeId,
                 limit,
-                offset
-            })
-        } else {
-            if (!typeId && !subTypeId) {
-                products = await Product.findAndCountAll({
-                    order:[
-                        ['id', 'ASC']
-                    ],
-                    limit,
-                    offset
-                })
+                page,
+                filter
+            } = req.query
+            let offset
+            if (limit != null) {
+                page = page || 1
+                limit = limit || 9
+                offset = page * limit - limit
             }
-            if (typeId && !subTypeId) {
+            
+    
+            let products;
+    
+            if (filter !== "") {
                 products = await Product.findAndCountAll({
                     where: {
-                        typeId,
+                        [Op.or]: [
+                        {
+                            name: {
+                            [Op.iLike]: '%' + filter + '%'
+                        }},
+                        {
+                            article: {
+                                [Op.iLike]: '%' + filter + '%'
+                            },
+                        }
+                    ]
                     },
                     order: [
                         ['id', 'ASC']
@@ -129,68 +109,96 @@ class ProductController {
                     limit,
                     offset
                 })
+            } else {
+                if (!typeId && !subTypeId) {
+                    products = await Product.findAndCountAll({
+                        order:[
+                            ['id', 'ASC']
+                        ],
+                        limit,
+                        offset
+                    })
+                }
+                if (typeId && !subTypeId) {
+                    products = await Product.findAndCountAll({
+                        where: {
+                            typeId,
+                        },
+                        order: [
+                            ['id', 'ASC']
+                        ],
+                        limit,
+                        offset
+                    })
+                }
+                if (!typeId && subTypeId) {
+                    products = await Product.findAndCountAll({
+                        where: {
+                            subTypeId,
+                        },
+                        order: [
+                            ['id', 'ASC']
+                        ],
+                        limit,
+                        offset
+                    })
+                }
+                if (typeId && subTypeId) {
+                    products = await Product.findAndCountAll({
+                        where: {
+                            typeId,
+                            subTypeId,
+                        },
+                        order: [
+                            ['id', 'ASC']
+                        ],
+                        limit,
+                        offset
+                    })
+                }
             }
-            if (!typeId && subTypeId) {
-                products = await Product.findAndCountAll({
-                    where: {
-                        subTypeId,
-                    },
-                    order: [
-                        ['id', 'ASC']
-                    ],
-                    limit,
-                    offset
-                })
-            }
-            if (typeId && subTypeId) {
-                products = await Product.findAndCountAll({
-                    where: {
-                        typeId,
-                        subTypeId,
-                    },
-                    order: [
-                        ['id', 'ASC']
-                    ],
-                    limit,
-                    offset
-                })
-            }
+    
+            return res.json(products)
+        } catch(e) {
+            next(ApiError.badRequest(e.message))
         }
-
-        return res.json(products)
     }
 
-    async getOne(req, res) {
-        const {
-            id
-        } = req.params
-
-        const product = await Product.findOne({
-            where: {
+    async getOne(req, res, next) {
+        try {
+            const {
                 id
-            },
-            include: [{
-                model: ProductInfo,
-                as: 'info'
-            }],
-            order: [
-                [{model: ProductInfo, as: 'info'}, 'id', 'ASC']
-            ]
-        }, )
-        const typeName = await Type.findOne({
-            where: {
-                id: product.typeId
-            }
-        })
-        const subTypeName = await SubType.findOne({
-            where: {
-                id: product.subTypeId
-            }
-        })
-        return res.json({product: product, type: typeName, subType: subTypeName})
+            } = req.params
+    
+            const product = await Product.findOne({
+                where: {
+                    id
+                },
+                include: [{
+                    model: ProductInfo,
+                    as: 'info'
+                }],
+                order: [
+                    [{model: ProductInfo, as: 'info'}, 'id', 'ASC']
+                ]
+            }, )
+            const typeName = await Type.findOne({
+                where: {
+                    id: product.typeId
+                }
+            })
+            const subTypeName = await SubType.findOne({
+                where: {
+                    id: product.subTypeId
+                }
+            })
+            return res.json({product: product, type: typeName, subType: subTypeName})
+        } catch(e) {
+            next(ApiError.badRequest(e.message))
+        }
     }
 
-    async editOne(req, res) {
+    async editOne(req, res, next) {
         try {
             let {
                 article,
@@ -244,7 +252,7 @@ class ProductController {
         
     }
 
-    async delete(req, res) {
+    async delete(req, res, next) {
         try {
             const {
                 id
