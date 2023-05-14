@@ -1,182 +1,179 @@
 const sequelize = require('../db')
-const {
-    DataTypes
-} = require('sequelize')
+const { DataTypes } = require('sequelize')
 
 const User = sequelize.define('user', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    email: {
-        type: DataTypes.STRING,
-        unique: true
-    },
-    password: {
-        type: DataTypes.STRING
-    },
-    name: {
-        type: DataTypes.STRING,
-        defaultValue: "Гость"
-    },
-    face: {
-        type: DataTypes.STRING,
-    },
-    inn: {
-        type: DataTypes.INTEGER,
-    },
-    role: {
-        type: DataTypes.STRING,
-        defaultValue: "USER"
-    },
-    opt: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
-
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  email: {
+    type: DataTypes.STRING,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING,
+  },
+  name: {
+    type: DataTypes.STRING,
+    defaultValue: 'Гость',
+  },
+  face: {
+    type: DataTypes.STRING,
+  },
+  inn: {
+    type: DataTypes.INTEGER,
+  },
+  role: {
+    type: DataTypes.STRING,
+    defaultValue: 'USER',
+  },
+  opt: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
 })
 
 const Basket = sequelize.define('basket', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
 })
 
 const BasketProduct = sequelize.define('basket_product', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    count: {
-        type: DataTypes.INTEGER,
-        defaultValue: 1,
-        allowNull: false,
-    },
-    cost: {
-        type: DataTypes.DOUBLE,
-        defaultValue: 1,
-        allowNull: false,
-    },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    allowNull: false,
+  },
+  cost: {
+    type: DataTypes.DOUBLE,
+    defaultValue: 1,
+    allowNull: false,
+  },
 })
 
 const Product = sequelize.define('product', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    article: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    price: {
-        type: DataTypes.DOUBLE,
-        allowNull: false
-    },
-    img: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    availability: {
-        type: DataTypes.BOOLEAN
-    },
-    handleCreate: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-    }
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  article: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.DOUBLE,
+    allowNull: false,
+  },
+  img: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  availability: {
+    type: DataTypes.BOOLEAN,
+  },
+  handleCreate: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 })
 
 const Type = sequelize.define('type', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    name: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
-    },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
 })
 
 const SubType = sequelize.define('sub_type', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    name: {
-        type: DataTypes.STRING,
-        unique: false,
-        allowNull: false
-    },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    unique: false,
+    allowNull: false,
+  },
 })
 
 const ProductInfo = sequelize.define('product_info', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    description: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 })
 
 User.hasOne(Basket)
 Basket.belongsTo(User)
 
 Basket.hasMany(BasketProduct, {
-    onDelete: "cascade"
+  onDelete: 'cascade',
 })
 BasketProduct.belongsTo(Basket)
 
 Type.hasMany(Product, {
-    onDelete: "cascade"
+  onDelete: 'cascade',
 })
 Product.belongsTo(Type)
 
 SubType.hasMany(Product, {
-    onDelete: "cascade"
+  onDelete: 'cascade',
 })
 Product.belongsTo(SubType)
 
 Product.hasMany(BasketProduct, {
-    onDelete: "cascade"
+  onDelete: 'cascade',
 })
 BasketProduct.belongsTo(Product)
 
 Product.hasMany(ProductInfo, {
-    as: 'info',
-    onDelete: "cascade"
+  as: 'info',
+  onDelete: 'cascade',
 })
 ProductInfo.belongsTo(Product)
 
 Type.hasMany(SubType, {
-    onDelete: "cascade"
+  onDelete: 'cascade',
 })
 SubType.belongsTo(Type)
 
 module.exports = {
-    User,
-    Basket,
-    BasketProduct,
-    Product,
-    Type,
-    SubType,
-    ProductInfo,
+  User,
+  Basket,
+  BasketProduct,
+  Product,
+  Type,
+  SubType,
+  ProductInfo,
 }

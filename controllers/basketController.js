@@ -163,7 +163,7 @@ class BasketController {
       const changeQuantity = await BasketProduct.update(
         {
           count: count,
-          cost: Math.ceil(
+          cost: Math.round(
             Number((goodsCheck.cost / goodsCheck.count) * +count)
           ),
         },
